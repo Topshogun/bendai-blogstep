@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Orbitron', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-wide font-orbitron;
+  }
+
+  /* Apply Montserrat to longer paragraphs */
+  p {
+    @apply font-montserrat;
+  }
+
+  /* Keep Orbitron for shorter text elements */
+  p:not(.long-text) {
+    @apply font-orbitron;
+  }
+
+  /* Maintain Orbitron for specific elements */
+  .nav-link, 
+  .btn, 
+  .heading, 
+  .brand-text {
+    @apply font-orbitron;
+  }
+}
+
+/* Helper class for long paragraphs */
+.long-text {
+  @apply font-montserrat;
+}

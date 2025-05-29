@@ -1,0 +1,58 @@
+/* Navigation Styles */
+.shadow-glow {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 20px rgba(147, 51, 234, 0.1);
+}
+
+.nav-button {
+  @apply px-6 py-2 text-sm;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-button:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.15);
+}
+
+/* Mobile Menu Animation */
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes menuFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98) translateY(-10px);
+  }
+}
+
+.mobile-menu-enter {
+  animation: menuFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.mobile-menu-exit {
+  animation: menuFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+  @apply scroll-pt-24; /* Offset for fixed header */
+}

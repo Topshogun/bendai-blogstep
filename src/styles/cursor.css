@@ -1,0 +1,31 @@
+/* Custom cursor styles */
+.custom-cursor {
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+  transform: translate(-50%, -50%);
+}
+
+.cursor-glow {
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, rgba(59, 130, 246, 0.1) 50%, transparent 100%);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+}
+
+/* Hide cursor on touch devices */
+@media (hover: none) {
+  .custom-cursor,
+  .cursor-glow {
+    display: none;
+  }
+}

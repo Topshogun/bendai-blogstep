@@ -1,0 +1,47 @@
+.grid-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(15, 23, 42, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+}
+
+.grid-spotlight {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(
+    circle at center,
+    rgba(56, 189, 248, 0.03) 0%,
+    rgba(59, 130, 246, 0.02) 30%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+}
+
+.cursor {
+  position: fixed;
+  width: 8px;
+  height: 14px;
+  background: white;
+  transform: rotate(-45deg) translate(-50%, -50%);
+  clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+}
+
+@media (hover: none) {
+  .grid-background,
+  .grid-spotlight,
+  .cursor {
+    display: none;
+  }
+}
