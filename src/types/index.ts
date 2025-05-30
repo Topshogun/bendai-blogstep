@@ -8,6 +8,7 @@ export interface Service {
 }
 
 export interface BlogPost {
+  id: string | number;
   title: string;
   excerpt: string;
   image: string;
@@ -15,6 +16,7 @@ export interface BlogPost {
   date: string;
   readTime: string;
   category: string;
+  slug: string;
 }
 
 export interface ProcessStep {
