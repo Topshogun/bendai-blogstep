@@ -1,0 +1,2 @@
+-- Enable RLS on Posts table
+ALTER TABLE "Posts" ENABLE ROW LEVEL SECURITY;
