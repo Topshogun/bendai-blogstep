@@ -30,7 +30,7 @@ const BlogGrid = ({ posts, isLoading, error }: BlogGridProps) => {
     );
   }
 
-  if (posts.length === 0) {
+  if (!posts || posts.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-400">No posts found.</p>
@@ -45,8 +45,8 @@ const BlogGrid = ({ posts, isLoading, error }: BlogGridProps) => {
         subtitle="Insights from our AI experts"
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-        {posts.map((post, index) => (
-          <BlogCard key={`${post.id}-${index}`} {...post} />
+        {posts.map((post) => (
+          <BlogCard key={post.id} {...post} />
         ))}
       </div>
     </section>
