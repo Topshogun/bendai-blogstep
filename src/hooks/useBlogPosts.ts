@@ -21,57 +21,53 @@ export const useBlogPosts = ({ page = 1, category = 'all', perPage = 6 }: UseBlo
       setError(null);
       
       try {
-        console.log('Fetching posts with params:', { page, category, perPage });
-        
-        // Basic query to check table existence and data
+        // First, check if we can access the Posts table
         const { data: tableCheck, error: tableError } = await supabase
           .from('Posts')
-          .select('count')
-          .single();
+          .select('id')
+          .limit(1);
 
-        console.log('Table check:', { tableCheck, tableError });
+        if (tableError) {
+          throw new Error(`Table access error: ${tableError.message}`);
+        }
 
+        // Calculate pagination
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        let query = supabase
+        // Build the query
+        const query = supabase
           .from('Posts')
-          .select('*', { count: 'exact' });
+          .select('*', { count: 'exact' })
+          .order('published_at', { ascending: false })
+          .range(from, to);
 
-        // Add ordering by created_at or published_at if available
-        query = query.order('created_at', { ascending: false });
-
+        // Add category filter if specified
         if (category !== 'all') {
-          query = query.eq('category_ids', category);
+          query.eq('category_ids', category);
         }
 
-        const { data: posts, count, error } = await query.range(from, to);
-
-        console.log('Supabase response:', { posts, count, error });
+        // Execute the query
+        const { data: posts, count, error } = await query;
 
         if (error) throw error;
 
         if (!posts) {
-          console.log('No posts found');
           setPosts([]);
           setTotalPages(0);
           return;
         }
 
-        const transformedPosts = posts.map(post => {
-          console.log('Processing post:', post);
-          return {
-            title: post.title || 'Untitled Post',
-            excerpt: post.excerpt || 'No excerpt available',
-            image: post.featured_image_url || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
-            author: 'Admin',
-            date: post.created_at ? new Date(post.created_at).toLocaleDateString() : 'No date',
-            readTime: '5 min',
-            category: post.category_ids || 'Uncategorized'
-          };
-        });
-
-        console.log('Transformed posts:', transformedPosts);
+        // Transform posts to match BlogPost type
+        const transformedPosts = posts.map(post => ({
+          title: post.title || 'Untitled Post',
+          excerpt: post.excerpt || 'No excerpt available',
+          image: post.featured_image_url || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
+          author: post.author_name || 'Admin',
+          date: new Date(post.published_at || post.created_at).toLocaleDateString(),
+          readTime: `${Math.ceil((post.content_markdown || '').length / 1500)} min read`,
+          category: post.category_ids || 'Uncategorized'
+        }));
 
         setPosts(transformedPosts);
         setTotalPages(Math.ceil((count || 0) / perPage));
