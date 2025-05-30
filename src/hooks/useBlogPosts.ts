@@ -12,6 +12,7 @@ export const useBlogPosts = ({ page = 1, category = 'all', perPage = 6 }: UseBlo
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [featured, setFeatured] = useState<BlogPost | null>(null);
 
   useEffect(() => {
@@ -27,71 +28,62 @@ export const useBlogPosts = ({ page = 1, category = 'all', perPage = 6 }: UseBlo
           .from('Posts')
           .select('*', { count: 'exact' })
           .eq('is_published', true)
-          .order('published_at', { ascending: false })
-          .range(from, to);
+          .order('created_at', { ascending: false });
 
         // Add category filter if specified
         if (category !== 'all') {
           query = query.eq('category_ids', category);
         }
 
+        // Add pagination
+        query = query.range(from, to);
+
         const { data: posts, count, error } = await query;
 
         if (error) throw error;
 
+        if (!posts) {
+          setPosts([]);
+          setTotalPages(0);
+          return;
+        }
+
         // Transform posts to match BlogPost type
-        const transformedPosts = posts?.map(post => ({
+        const transformedPosts = posts.map(post => ({
           title: post.title || '',
           excerpt: post.excerpt || '',
-          image: post.featured_image_url || '',
-          author: 'Admin', // You might want to fetch this from a users table
-          date: post.published_at ? new Date(post.published_at).toLocaleDateString() : '',
-          readTime: '5 min', // You might want to calculate this based on content length
+          image: post.featured_image_url || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
+          author: 'Admin',
+          date: post.created_at ? new Date(post.created_at).toLocaleDateString() : '',
+          readTime: '5 min',
           category: post.category_ids || 'Uncategorized'
-        })) || [];
+        }));
 
         setPosts(transformedPosts);
         setTotalPages(Math.ceil((count || 0) / perPage));
 
-        // Fetch featured post if on first page
+        // Set featured post if on first page
         if (page === 1 && transformedPosts.length > 0) {
           setFeatured(transformedPosts[0]);
         }
+
+        setError(null);
       } catch (error) {
         console.error('Error fetching posts:', error);
+        setError(error instanceof Error ? error : new Error('Failed to fetch posts'));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchPosts();
-
-    // Set up realtime subscription
-    const subscription = supabase
-      .channel('public:Posts')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'Posts'
-        },
-        (payload) => {
-          console.log('Change received:', payload);
-          fetchPosts(); // Refresh posts when changes occur
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [page, category, perPage]);
 
   return {
     posts,
     totalPages,
     isLoading,
+    error,
     featured
   };
 };

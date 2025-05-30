@@ -5,9 +5,27 @@ import SectionHeader from '../common/SectionHeader';
 
 interface BlogGridProps {
   posts: BlogPost[];
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
-const BlogGrid = ({ posts }: BlogGridProps) => {
+const BlogGrid = ({ posts, isLoading, error }: BlogGridProps) => {
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-400">Loading posts...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-400">Error loading posts: {error.message}</p>
+      </div>
+    );
+  }
+
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
