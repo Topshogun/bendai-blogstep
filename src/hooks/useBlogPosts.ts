@@ -23,6 +23,14 @@ export const useBlogPosts = ({ page = 1, category = 'all', perPage = 6 }: UseBlo
       try {
         console.log('Fetching posts with params:', { page, category, perPage });
         
+        // Basic query to check table existence and data
+        const { data: tableCheck, error: tableError } = await supabase
+          .from('Posts')
+          .select('count')
+          .single();
+
+        console.log('Table check:', { tableCheck, tableError });
+
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
@@ -30,7 +38,7 @@ export const useBlogPosts = ({ page = 1, category = 'all', perPage = 6 }: UseBlo
           .from('Posts')
           .select('*', { count: 'exact' });
 
-        // Only filter by is_published if it exists in the table
+        // Add ordering by created_at or published_at if available
         query = query.order('created_at', { ascending: false });
 
         if (category !== 'all') {
@@ -44,20 +52,24 @@ export const useBlogPosts = ({ page = 1, category = 'all', perPage = 6 }: UseBlo
         if (error) throw error;
 
         if (!posts) {
+          console.log('No posts found');
           setPosts([]);
           setTotalPages(0);
           return;
         }
 
-        const transformedPosts = posts.map(post => ({
-          title: post.title || 'Untitled Post',
-          excerpt: post.excerpt || 'No excerpt available',
-          image: post.featured_image_url || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
-          author: 'Admin',
-          date: post.created_at ? new Date(post.created_at).toLocaleDateString() : 'No date',
-          readTime: '5 min',
-          category: post.category_ids || 'Uncategorized'
-        }));
+        const transformedPosts = posts.map(post => {
+          console.log('Processing post:', post);
+          return {
+            title: post.title || 'Untitled Post',
+            excerpt: post.excerpt || 'No excerpt available',
+            image: post.featured_image_url || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
+            author: 'Admin',
+            date: post.created_at ? new Date(post.created_at).toLocaleDateString() : 'No date',
+            readTime: '5 min',
+            category: post.category_ids || 'Uncategorized'
+          };
+        });
 
         console.log('Transformed posts:', transformedPosts);
 

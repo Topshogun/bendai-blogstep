@@ -23,8 +23,9 @@ const BlogGrid = ({ posts, isLoading, error }: BlogGridProps) => {
 
   if (error) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 space-y-4">
         <p className="text-red-400">Error loading posts: {error.message}</p>
+        <p className="text-gray-400">Please try again later or contact support if the problem persists.</p>
       </div>
     );
   }
