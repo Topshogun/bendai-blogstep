@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Trash2, Eye, Calendar, RefreshCw, TestTube, AlertCircle } from 'lucide-react';
+import { Trash2, Eye, Calendar, RefreshCw, TestTube, AlertCircle, CheckCircle } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 interface BlogPost {
@@ -12,7 +12,7 @@ interface BlogPost {
   is_published: boolean;
   featured_image_url: string;
   slug: string;
-  tags: string[] | string;
+  tags: string[] | null;
   content_markdown: string;
   created_at: string;
 }
@@ -22,6 +22,7 @@ const PostsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTestingApi, setIsTestingApi] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -100,12 +101,16 @@ const PostsPage = () => {
 
   const testApiEndpoint = async () => {
     setIsTestingApi(true);
+    setTestResult(null);
+    
     try {
       console.log('🧪 Testing API endpoint...');
       
       const testData = {
         title: `Test Post ${new Date().toISOString()}`,
-        content: `This is a test blog post created at ${new Date().toLocaleString()}. 
+        content: `# Test Blog Post
+
+This is a test blog post created at ${new Date().toLocaleString()}.
 
 ## Test Content
 
@@ -117,14 +122,24 @@ This post was created to test the API endpoint functionality.
 - Database insertion
 - Real-time updates
 
-The content includes **markdown formatting** and various elements to ensure proper handling.`,
+The content includes **markdown formatting** and various elements to ensure proper handling.
+
+### Code Example:
+\`\`\`javascript
+console.log('Hello from the test post!');
+\`\`\`
+
+This test verifies that the blog API is working correctly and can receive posts from external systems like n8n workflows.`,
         excerpt: 'This is a test post created to verify the API endpoint is working correctly.',
         category: 'Testing',
-        tags: ['test', 'api', 'automation'],
+        tags: ['test', 'api', 'automation', 'blog'],
         featuredImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=1200&h=630'
       };
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/blog-posts`, {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/blog-posts`;
+      console.log('🔗 API URL:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,25 +151,29 @@ The content includes **markdown formatting** and various elements to ensure prop
       const result = await response.json();
       console.log('🧪 API test result:', result);
 
-      if (response.ok) {
-        alert('✅ API test successful! Check the posts list for the new test post.');
+      if (response.ok && result.success) {
+        setTestResult({ success: true, message: 'API test successful! New test post created.' });
         fetchPosts(); // Refresh the list
       } else {
-        alert('❌ API test failed: ' + result.error);
+        setTestResult({ 
+          success: false, 
+          message: `API test failed: ${result.error || 'Unknown error'}` 
+        });
       }
     } catch (error) {
       console.error('❌ API test error:', error);
-      alert('❌ API test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setTestResult({ 
+        success: false, 
+        message: `API test failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      });
     } finally {
       setIsTestingApi(false);
     }
   };
 
-  const formatTags = (tags: string[] | string): string => {
-    if (Array.isArray(tags)) {
-      return tags.join(', ');
-    }
-    return tags || '';
+  const formatTags = (tags: string[] | null): string => {
+    if (!tags || !Array.isArray(tags)) return '';
+    return tags.join(', ');
   };
 
   if (isLoading) {
@@ -162,7 +181,7 @@ The content includes **markdown formatting** and various elements to ensure prop
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Blog Posts</h1>
-          <Button variant="secondary" onClick={fetchPosts} disabled>
+          <Button variant="secondary" disabled>
             <RefreshCw size={16} className="animate-spin" />
             Loading...
           </Button>
@@ -218,6 +237,20 @@ The content includes **markdown formatting** and various elements to ensure prop
         </div>
       </div>
 
+      {/* Test Result Display */}
+      {testResult && (
+        <div className={`p-4 rounded-lg border ${
+          testResult.success 
+            ? 'bg-green-500/10 border-green-500/20 text-green-400' 
+            : 'bg-red-500/10 border-red-500/20 text-red-400'
+        }`}>
+          <div className="flex items-center gap-2">
+            {testResult.success ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+            <span>{testResult.message}</span>
+          </div>
+        </div>
+      )}
+
       {/* API Endpoint Information */}
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-blue-400 mb-2">API Endpoint Information</h3>
@@ -225,6 +258,7 @@ The content includes **markdown formatting** and various elements to ensure prop
           <p><strong>URL:</strong> <code className="bg-black/30 px-2 py-1 rounded">{import.meta.env.VITE_SUPABASE_URL}/functions/v1/blog-posts</code></p>
           <p><strong>Method:</strong> POST</p>
           <p><strong>Content-Type:</strong> application/json</p>
+          <p><strong>Authorization:</strong> Bearer {import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20)}...</p>
           <p className="text-gray-400">Use the "Test API" button above to verify the endpoint is working.</p>
         </div>
       </div>
@@ -269,13 +303,16 @@ The content includes **markdown formatting** and various elements to ensure prop
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold line-clamp-1">{post.title}</h3>
                           <p className="text-sm text-gray-400 line-clamp-2">{post.excerpt}</p>
-                          {post.tags && (
+                          {post.tags && post.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {formatTags(post.tags).split(',').slice(0, 3).map((tag, index) => (
+                              {post.tags.slice(0, 3).map((tag, index) => (
                                 <span key={index} className="text-xs bg-gray-700 px-2 py-1 rounded">
                                   {tag.trim()}
                                 </span>
                               ))}
+                              {post.tags.length > 3 && (
+                                <span className="text-xs text-gray-500">+{post.tags.length - 3} more</span>
+                              )}
                             </div>
                           )}
                         </div>
@@ -318,6 +355,8 @@ The content includes **markdown formatting** and various elements to ensure prop
                                       h1 { color: #333; }
                                       .meta { color: #666; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
                                       .content { margin-top: 20px; }
+                                      .tags { margin-top: 10px; }
+                                      .tag { background: #f0f0f0; padding: 2px 8px; margin: 2px; border-radius: 4px; font-size: 12px; }
                                     </style>
                                   </head>
                                   <body>
@@ -325,7 +364,12 @@ The content includes **markdown formatting** and various elements to ensure prop
                                     <div class="meta">
                                       <p><strong>Category:</strong> ${post.category_ids}</p>
                                       <p><strong>Published:</strong> ${new Date(post.published_at).toLocaleDateString()}</p>
-                                      <p><strong>Tags:</strong> ${formatTags(post.tags)}</p>
+                                      ${post.tags && post.tags.length > 0 ? `
+                                        <div class="tags">
+                                          <strong>Tags:</strong> 
+                                          ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                        </div>
+                                      ` : ''}
                                     </div>
                                     <img src="${post.featured_image_url}" alt="${post.title}" />
                                     <h2>Excerpt</h2>

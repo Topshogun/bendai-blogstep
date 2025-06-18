@@ -42,6 +42,24 @@ interface BlogPostData {
   slug?: string;
 }
 
+// Interface for database post structure
+interface DatabasePost {
+  title: string;
+  content_markdown: string;
+  excerpt: string;
+  featured_image_url: string;
+  category_ids: string;
+  tags: string[] | null;
+  slug: string;
+  is_published: boolean;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+  research_topic: string | null;
+  seo_keywords_targeted: string[] | null;
+  seo_keywords_used: string[] | null;
+}
+
 // Validation function for blog post data
 function validateBlogPost(data: any): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -91,6 +109,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     console.log('🚀 Blog posts API called with method:', req.method);
+    console.log('🔗 Request URL:', req.url);
 
     // Only allow POST requests
     if (req.method !== 'POST') {
@@ -113,8 +132,10 @@ Deno.serve(async (req: Request) => {
     // Parse request body
     let requestData: BlogPostData;
     try {
-      requestData = await req.json();
-      console.log('📝 Received blog post data:', {
+      const body = await req.text();
+      console.log('📥 Raw request body:', body);
+      requestData = JSON.parse(body);
+      console.log('📝 Parsed blog post data:', {
         title: requestData.title,
         contentLength: requestData.content?.length || 0,
         author: requestData.author,
@@ -165,6 +186,7 @@ Deno.serve(async (req: Request) => {
     
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('❌ Missing Supabase environment variables');
+      console.log('Available env vars:', Object.keys(Deno.env.toObject()));
       return new Response(
         JSON.stringify({
           success: false,
@@ -181,29 +203,38 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
     // Generate slug if not provided
     const slug = requestData.slug || generateSlug(requestData.title);
     
     // Check if slug already exists
-    const { data: existingPost } = await supabase
+    const { data: existingPost, error: checkError } = await supabase
       .from('Posts')
       .select('id')
       .eq('slug', slug)
-      .single();
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('❌ Error checking existing slug:', checkError);
+    }
 
     // If slug exists, append timestamp to make it unique
     const finalSlug = existingPost ? `${slug}-${Date.now()}` : slug;
 
     // Prepare data for database insertion - match the exact schema
-    const postData = {
+    const postData: Partial<DatabasePost> = {
       title: requestData.title.trim(),
       content_markdown: requestData.content.trim(),
       excerpt: requestData.excerpt.trim(),
       featured_image_url: requestData.featuredImage || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&h=630',
       category_ids: requestData.category || 'AI Technology',
-      tags: requestData.tags || [],
+      tags: requestData.tags || null,
       slug: finalSlug,
       is_published: true,
       published_at: requestData.publishedDate || new Date().toISOString(),
@@ -218,7 +249,9 @@ Deno.serve(async (req: Request) => {
       title: postData.title,
       slug: postData.slug,
       category: postData.category_ids,
-      tags: postData.tags
+      tags: postData.tags,
+      hasContent: !!postData.content_markdown,
+      hasExcerpt: !!postData.excerpt
     });
 
     // Insert the blog post into Supabase
@@ -230,12 +263,19 @@ Deno.serve(async (req: Request) => {
 
     if (insertError) {
       console.error('❌ Database insertion error:', insertError);
+      console.error('❌ Error details:', {
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint,
+        code: insertError.code
+      });
       return new Response(
         JSON.stringify({
           success: false,
           error: 'Failed to save blog post',
           details: insertError.message,
-          code: insertError.code
+          code: insertError.code,
+          hint: insertError.hint
         }),
         {
           status: 500,
