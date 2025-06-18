@@ -47,7 +47,8 @@ The project includes a Supabase Edge Function for receiving blog posts from exte
     "id": "uuid",
     "title": "Your Blog Post Title",
     "slug": "your-blog-post-title",
-    "publishedAt": "2024-01-15T10:30:00Z"
+    "publishedAt": "2024-01-15T10:30:00Z",
+    "url": "https://your-domain.com/blog/your-blog-post-title"
   }
 }
 ```
@@ -68,14 +69,17 @@ You can test the endpoint using curl:
 ```bash
 curl -X POST https://your-project.supabase.co/functions/v1/blog-posts \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_SUPABASE_ANON_KEY" \
   -d '{
     "title": "Test Blog Post",
-    "content": "This is a test blog post content.",
+    "content": "This is a test blog post content with **markdown** formatting.",
     "excerpt": "A test post for the API endpoint.",
     "category": "Testing",
     "tags": ["test", "api"]
   }'
 ```
+
+Or use the built-in test function in the admin dashboard at `/admin/posts`.
 
 ### Setup Instructions
 
@@ -94,7 +98,8 @@ curl -X POST https://your-project.supabase.co/functions/v1/blog-posts \
 3. **Database Setup**
    Run the Supabase migrations to set up the required tables:
    ```bash
-   # The migrations will create the Posts and consultations tables
+   # Apply the migrations to create Posts and consultations tables
+   # The migrations will automatically create the necessary tables and policies
    ```
 
 4. **Development Server**
@@ -104,6 +109,18 @@ curl -X POST https://your-project.supabase.co/functions/v1/blog-posts \
 
 5. **Deploy Edge Function**
    The blog-posts edge function will be automatically deployed to Supabase.
+
+### Admin Dashboard
+
+Access the admin dashboard at `/admin` with these credentials:
+- **Username**: `admin`
+- **Password**: `admin123`
+
+The admin dashboard includes:
+- **Dashboard**: Overview with stats
+- **Posts**: View and manage blog posts from your API
+- **Users**: User management
+- **Settings**: Site configuration
 
 ### Project Structure
 
@@ -130,6 +147,31 @@ supabase/
 - **Icons**: Lucide React
 - **Routing**: React Router DOM
 - **Build Tool**: Vite
+
+### API Integration with n8n
+
+To integrate with your n8n workflow:
+
+1. **Configure HTTP Request Node** in n8n:
+   - Method: POST
+   - URL: `https://your-project.supabase.co/functions/v1/blog-posts`
+   - Headers: 
+     - `Content-Type: application/json`
+     - `Authorization: Bearer YOUR_SUPABASE_ANON_KEY`
+
+2. **Set up the request body** with your blog post data following the expected format above.
+
+3. **Handle the response** to check for success/error status.
+
+### Troubleshooting
+
+If you encounter issues:
+
+1. **Check the admin dashboard** at `/admin/posts` for any error messages
+2. **Use the "Test API" button** in the admin dashboard to verify the endpoint
+3. **Check browser console** for detailed error logs
+4. **Verify environment variables** are correctly set
+5. **Ensure Supabase project** has the correct tables and policies
 
 ### Contributing
 

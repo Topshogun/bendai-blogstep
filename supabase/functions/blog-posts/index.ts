@@ -90,6 +90,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    console.log('🚀 Blog posts API called with method:', req.method);
+
     // Only allow POST requests
     if (req.method !== 'POST') {
       return new Response(
@@ -112,6 +114,13 @@ Deno.serve(async (req: Request) => {
     let requestData: BlogPostData;
     try {
       requestData = await req.json();
+      console.log('📝 Received blog post data:', {
+        title: requestData.title,
+        contentLength: requestData.content?.length || 0,
+        author: requestData.author,
+        category: requestData.category,
+        tags: requestData.tags
+      });
     } catch (parseError) {
       console.error('❌ JSON parsing error:', parseError);
       return new Response(
@@ -129,14 +138,6 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
-
-    console.log('📝 Received blog post data:', {
-      title: requestData.title,
-      contentLength: requestData.content?.length || 0,
-      author: requestData.author,
-      category: requestData.category,
-      tags: requestData.tags
-    });
 
     // Validate the incoming data
     const validation = validateBlogPost(requestData);
@@ -158,11 +159,42 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Initialize Supabase client
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Initialize Supabase client with service role key
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Missing Supabase environment variables');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Server configuration error',
+          details: 'Missing required environment variables'
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Generate slug if not provided
+    const slug = requestData.slug || generateSlug(requestData.title);
+    
+    // Check if slug already exists
+    const { data: existingPost } = await supabase
+      .from('Posts')
+      .select('id')
+      .eq('slug', slug)
+      .single();
+
+    // If slug exists, append timestamp to make it unique
+    const finalSlug = existingPost ? `${slug}-${Date.now()}` : slug;
 
     // Prepare data for database insertion
     const postData = {
@@ -172,7 +204,7 @@ Deno.serve(async (req: Request) => {
       featured_image_url: requestData.featuredImage || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&h=630',
       category_ids: requestData.category || 'AI Technology',
       tags: requestData.tags?.join(', ') || '',
-      slug: requestData.slug || generateSlug(requestData.title),
+      slug: finalSlug,
       is_published: true,
       published_at: requestData.publishedDate || new Date().toISOString(),
       created_at: new Date().toISOString(),
@@ -198,7 +230,8 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({
           success: false,
           error: 'Failed to save blog post',
-          details: insertError.message
+          details: insertError.message,
+          code: insertError.code
         }),
         {
           status: 500,
@@ -221,7 +254,8 @@ Deno.serve(async (req: Request) => {
           id: insertedPost.id,
           title: insertedPost.title,
           slug: insertedPost.slug,
-          publishedAt: insertedPost.published_at
+          publishedAt: insertedPost.published_at,
+          url: `https://your-domain.com/blog/${insertedPost.slug}`
         }
       }),
       {
@@ -240,7 +274,8 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: false,
         error: 'Internal server error',
-        details: error.message
+        details: error.message,
+        stack: error.stack
       }),
       {
         status: 500,
