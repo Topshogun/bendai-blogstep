@@ -4,7 +4,7 @@ import { LayoutDashboard, FileText, Users, Settings } from 'lucide-react';
 
 const AdminSidebar = () => {
   return (
-    <aside className="w-64 min-h-screen bg-white/5 border-r border-white/10">
+    <aside className="w-64 bg-white/5 border-r border-white/10">
       <nav className="p-4">
         <ul className="space-y-2">
           <li>

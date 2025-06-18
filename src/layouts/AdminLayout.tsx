@@ -5,11 +5,11 @@ import AdminHeader from '../components/admin/AdminHeader';
 
 const AdminLayout = () => {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       <AdminHeader />
-      <div className="flex">
+      <div className="flex flex-1">
         <AdminSidebar />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 overflow-auto">
           <Outlet />
         </main>
       </div>
