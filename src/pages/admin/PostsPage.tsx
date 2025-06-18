@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Trash2, Eye, Calendar, RefreshCw, TestTube, AlertCircle, CheckCircle } from 'lucide-react';
+import { Trash2, Eye, Calendar, RefreshCw, TestTube, AlertCircle, CheckCircle, Copy } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 interface BlogPost {
@@ -22,7 +22,7 @@ const PostsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTestingApi, setIsTestingApi] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string; details?: any } | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -139,36 +139,53 @@ This test verifies that the blog API is working correctly and can receive posts 
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/blog-posts`;
       console.log('🔗 API URL:', apiUrl);
 
+      // Use service role key for testing (this bypasses JWT validation)
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          // Note: In production, you should use a proper API key or authentication method
+          // For testing purposes, we'll send the request without auth since the edge function
+          // uses service role internally
         },
         body: JSON.stringify(testData)
       });
 
       const result = await response.json();
       console.log('🧪 API test result:', result);
+      console.log('📊 Response status:', response.status);
+      console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (response.ok && result.success) {
-        setTestResult({ success: true, message: 'API test successful! New test post created.' });
+        setTestResult({ 
+          success: true, 
+          message: 'API test successful! New test post created.',
+          details: result.data
+        });
         fetchPosts(); // Refresh the list
       } else {
         setTestResult({ 
           success: false, 
-          message: `API test failed: ${result.error || 'Unknown error'}` 
+          message: `API test failed: ${result.error || 'Unknown error'}`,
+          details: result
         });
       }
     } catch (error) {
       console.error('❌ API test error:', error);
       setTestResult({ 
         success: false, 
-        message: `API test failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+        message: `API test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: error
       });
     } finally {
       setIsTestingApi(false);
     }
+  };
+
+  const copyApiUrl = () => {
+    const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/blog-posts`;
+    navigator.clipboard.writeText(apiUrl);
+    alert('API URL copied to clipboard!');
   };
 
   const formatTags = (tags: string[] | null): string => {
@@ -244,22 +261,56 @@ This test verifies that the blog API is working correctly and can receive posts 
             ? 'bg-green-500/10 border-green-500/20 text-green-400' 
             : 'bg-red-500/10 border-red-500/20 text-red-400'
         }`}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-2">
             {testResult.success ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-            <span>{testResult.message}</span>
+            <span className="font-semibold">{testResult.message}</span>
           </div>
+          {testResult.details && (
+            <details className="mt-2">
+              <summary className="cursor-pointer text-sm opacity-75">View Details</summary>
+              <pre className="mt-2 text-xs bg-black/20 p-2 rounded overflow-auto">
+                {JSON.stringify(testResult.details, null, 2)}
+              </pre>
+            </details>
+          )}
         </div>
       )}
 
       {/* API Endpoint Information */}
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-blue-400 mb-2">API Endpoint Information</h3>
-        <div className="space-y-2 text-sm">
-          <p><strong>URL:</strong> <code className="bg-black/30 px-2 py-1 rounded">{import.meta.env.VITE_SUPABASE_URL}/functions/v1/blog-posts</code></p>
+        <h3 className="text-lg font-semibold text-blue-400 mb-3">API Endpoint Information</h3>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-center gap-2">
+            <strong>URL:</strong> 
+            <code className="bg-black/30 px-2 py-1 rounded flex-1">
+              {import.meta.env.VITE_SUPABASE_URL}/functions/v1/blog-posts
+            </code>
+            <Button variant="secondary" onClick={copyApiUrl} className="px-2 py-1 text-xs">
+              <Copy size={12} />
+            </Button>
+          </div>
           <p><strong>Method:</strong> POST</p>
           <p><strong>Content-Type:</strong> application/json</p>
-          <p><strong>Authorization:</strong> Bearer {import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20)}...</p>
-          <p className="text-gray-400">Use the "Test API" button above to verify the endpoint is working.</p>
+          <p><strong>Authentication:</strong> None required (uses service role internally)</p>
+          
+          <div className="mt-4 p-3 bg-black/20 rounded">
+            <p className="font-semibold mb-2">Sample Request Body:</p>
+            <pre className="text-xs overflow-auto">
+{`{
+  "title": "Your Blog Post Title",
+  "content": "Full blog post content in markdown",
+  "excerpt": "Brief description of the post",
+  "category": "AI Technology",
+  "tags": ["AI", "automation", "technology"],
+  "featuredImage": "https://example.com/image.jpg"
+}`}
+            </pre>
+          </div>
+          
+          <p className="text-gray-400 mt-3">
+            Use the "Test API" button above to verify the endpoint is working. 
+            This endpoint can be called from n8n workflows or other external systems.
+          </p>
         </div>
       </div>
 

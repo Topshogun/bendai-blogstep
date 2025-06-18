@@ -26,7 +26,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, apikey',
 };
 
 // Interface for incoming blog post data
@@ -110,6 +110,7 @@ Deno.serve(async (req: Request) => {
   try {
     console.log('🚀 Blog posts API called with method:', req.method);
     console.log('🔗 Request URL:', req.url);
+    console.log('📋 Request headers:', Object.fromEntries(req.headers.entries()));
 
     // Only allow POST requests
     if (req.method !== 'POST') {
@@ -134,6 +135,7 @@ Deno.serve(async (req: Request) => {
     try {
       const body = await req.text();
       console.log('📥 Raw request body length:', body.length);
+      console.log('📥 Raw request body preview:', body.substring(0, 200) + '...');
       requestData = JSON.parse(body);
       console.log('📝 Parsed blog post data:', {
         title: requestData.title,
@@ -181,9 +183,16 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Initialize Supabase client with service role key
+    // Initialize Supabase client with service role key (bypasses RLS)
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    console.log('🔑 Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      urlPreview: supabaseUrl?.substring(0, 30) + '...',
+      serviceKeyPreview: supabaseServiceKey?.substring(0, 20) + '...'
+    });
     
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('❌ Missing Supabase environment variables');
@@ -204,6 +213,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Create Supabase client with service role (bypasses RLS and JWT validation)
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -211,10 +221,13 @@ Deno.serve(async (req: Request) => {
       }
     });
 
+    console.log('✅ Supabase client created successfully');
+
     // Generate slug if not provided
     const slug = requestData.slug || generateSlug(requestData.title);
     
     // Check if slug already exists
+    console.log('🔍 Checking for existing slug:', slug);
     const { data: existingPost, error: checkError } = await supabase
       .from('Posts')
       .select('id')
@@ -227,6 +240,7 @@ Deno.serve(async (req: Request) => {
 
     // If slug exists, append timestamp to make it unique
     const finalSlug = existingPost ? `${slug}-${Date.now()}` : slug;
+    console.log('📝 Final slug:', finalSlug);
 
     // Prepare data for database insertion - match the exact schema
     const postData: Omit<DatabasePost, 'id'> = {
