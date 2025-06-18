@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Trash2, Eye, Calendar, User, RefreshCw } from 'lucide-react';
+import { Trash2, Eye, Calendar, RefreshCw, TestTube, AlertCircle } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 interface BlogPost {
@@ -12,7 +12,7 @@ interface BlogPost {
   is_published: boolean;
   featured_image_url: string;
   slug: string;
-  tags: string;
+  tags: string[] | string;
   content_markdown: string;
   created_at: string;
 }
@@ -21,6 +21,7 @@ const PostsPage = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isTestingApi, setIsTestingApi] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -98,6 +99,7 @@ const PostsPage = () => {
   };
 
   const testApiEndpoint = async () => {
+    setIsTestingApi(true);
     try {
       console.log('🧪 Testing API endpoint...');
       
@@ -142,8 +144,17 @@ The content includes **markdown formatting** and various elements to ensure prop
       }
     } catch (error) {
       console.error('❌ API test error:', error);
-      alert('❌ API test failed: ' + error.message);
+      alert('❌ API test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsTestingApi(false);
     }
+  };
+
+  const formatTags = (tags: string[] | string): string => {
+    if (Array.isArray(tags)) {
+      return tags.join(', ');
+    }
+    return tags || '';
   };
 
   if (isLoading) {
@@ -151,9 +162,9 @@ The content includes **markdown formatting** and various elements to ensure prop
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Blog Posts</h1>
-          <Button variant="secondary" onClick={fetchPosts}>
-            <RefreshCw size={16} />
-            Refresh
+          <Button variant="secondary" onClick={fetchPosts} disabled>
+            <RefreshCw size={16} className="animate-spin" />
+            Loading...
           </Button>
         </div>
         <div className="text-center py-12">
@@ -169,13 +180,16 @@ The content includes **markdown formatting** and various elements to ensure prop
       <div className="space-y-8">
         <h1 className="text-2xl font-bold">Blog Posts</h1>
         <div className="text-center py-12 space-y-4">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto" />
           <p className="text-red-400">Error: {error}</p>
           <div className="space-x-4">
             <Button variant="primary" onClick={fetchPosts}>
+              <RefreshCw size={16} />
               Retry
             </Button>
-            <Button variant="secondary" onClick={testApiEndpoint}>
-              Test API
+            <Button variant="secondary" onClick={testApiEndpoint} disabled={isTestingApi}>
+              <TestTube size={16} />
+              {isTestingApi ? 'Testing...' : 'Test API'}
             </Button>
           </div>
         </div>
@@ -193,8 +207,9 @@ The content includes **markdown formatting** and various elements to ensure prop
           </p>
         </div>
         <div className="flex space-x-4">
-          <Button variant="secondary" onClick={testApiEndpoint}>
-            Test API
+          <Button variant="secondary" onClick={testApiEndpoint} disabled={isTestingApi}>
+            <TestTube size={16} />
+            {isTestingApi ? 'Testing...' : 'Test API'}
           </Button>
           <Button variant="secondary" onClick={fetchPosts}>
             <RefreshCw size={16} />
@@ -220,8 +235,9 @@ The content includes **markdown formatting** and various elements to ensure prop
           <p className="text-sm text-gray-500">
             Posts will appear here when received from your n8n workflow or when you test the API endpoint.
           </p>
-          <Button variant="primary" onClick={testApiEndpoint}>
-            Create Test Post
+          <Button variant="primary" onClick={testApiEndpoint} disabled={isTestingApi}>
+            <TestTube size={16} />
+            {isTestingApi ? 'Creating Test Post...' : 'Create Test Post'}
           </Button>
         </div>
       ) : (
@@ -255,7 +271,7 @@ The content includes **markdown formatting** and various elements to ensure prop
                           <p className="text-sm text-gray-400 line-clamp-2">{post.excerpt}</p>
                           {post.tags && (
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {post.tags.split(',').slice(0, 3).map((tag, index) => (
+                              {formatTags(post.tags).split(',').slice(0, 3).map((tag, index) => (
                                 <span key={index} className="text-xs bg-gray-700 px-2 py-1 rounded">
                                   {tag.trim()}
                                 </span>
@@ -297,10 +313,11 @@ The content includes **markdown formatting** and various elements to ensure prop
                                   <head>
                                     <title>${post.title}</title>
                                     <style>
-                                      body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                                      body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
                                       img { max-width: 100%; height: auto; }
                                       h1 { color: #333; }
-                                      .meta { color: #666; margin-bottom: 20px; }
+                                      .meta { color: #666; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                                      .content { margin-top: 20px; }
                                     </style>
                                   </head>
                                   <body>
@@ -308,13 +325,13 @@ The content includes **markdown formatting** and various elements to ensure prop
                                     <div class="meta">
                                       <p><strong>Category:</strong> ${post.category_ids}</p>
                                       <p><strong>Published:</strong> ${new Date(post.published_at).toLocaleDateString()}</p>
-                                      <p><strong>Tags:</strong> ${post.tags}</p>
+                                      <p><strong>Tags:</strong> ${formatTags(post.tags)}</p>
                                     </div>
                                     <img src="${post.featured_image_url}" alt="${post.title}" />
                                     <h2>Excerpt</h2>
                                     <p>${post.excerpt}</p>
                                     <h2>Content</h2>
-                                    <div>${post.content_markdown.replace(/\n/g, '<br>')}</div>
+                                    <div class="content">${post.content_markdown.replace(/\n/g, '<br>')}</div>
                                   </body>
                                 </html>
                               `);

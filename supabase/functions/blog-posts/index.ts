@@ -196,25 +196,29 @@ Deno.serve(async (req: Request) => {
     // If slug exists, append timestamp to make it unique
     const finalSlug = existingPost ? `${slug}-${Date.now()}` : slug;
 
-    // Prepare data for database insertion
+    // Prepare data for database insertion - match the exact schema
     const postData = {
       title: requestData.title.trim(),
       content_markdown: requestData.content.trim(),
       excerpt: requestData.excerpt.trim(),
       featured_image_url: requestData.featuredImage || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&h=630',
       category_ids: requestData.category || 'AI Technology',
-      tags: requestData.tags?.join(', ') || '',
+      tags: requestData.tags || [],
       slug: finalSlug,
       is_published: true,
       published_at: requestData.publishedDate || new Date().toISOString(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      research_topic: null,
+      seo_keywords_targeted: null,
+      seo_keywords_used: null
     };
 
     console.log('💾 Inserting post into database:', {
       title: postData.title,
       slug: postData.slug,
-      category: postData.category_ids
+      category: postData.category_ids,
+      tags: postData.tags
     });
 
     // Insert the blog post into Supabase
