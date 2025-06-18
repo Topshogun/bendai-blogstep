@@ -133,14 +133,15 @@ Deno.serve(async (req: Request) => {
     let requestData: BlogPostData;
     try {
       const body = await req.text();
-      console.log('📥 Raw request body:', body);
+      console.log('📥 Raw request body length:', body.length);
       requestData = JSON.parse(body);
       console.log('📝 Parsed blog post data:', {
         title: requestData.title,
         contentLength: requestData.content?.length || 0,
         author: requestData.author,
         category: requestData.category,
-        tags: requestData.tags
+        tags: requestData.tags,
+        hasSlug: !!requestData.slug
       });
     } catch (parseError) {
       console.error('❌ JSON parsing error:', parseError);
@@ -186,7 +187,7 @@ Deno.serve(async (req: Request) => {
     
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('❌ Missing Supabase environment variables');
-      console.log('Available env vars:', Object.keys(Deno.env.toObject()));
+      console.log('Available env vars:', Object.keys(Deno.env.toObject()).filter(key => key.includes('SUPABASE')));
       return new Response(
         JSON.stringify({
           success: false,
@@ -220,7 +221,7 @@ Deno.serve(async (req: Request) => {
       .eq('slug', slug)
       .maybeSingle();
 
-    if (checkError) {
+    if (checkError && checkError.code !== 'PGRST116') {
       console.error('❌ Error checking existing slug:', checkError);
     }
 
@@ -228,7 +229,7 @@ Deno.serve(async (req: Request) => {
     const finalSlug = existingPost ? `${slug}-${Date.now()}` : slug;
 
     // Prepare data for database insertion - match the exact schema
-    const postData: Partial<DatabasePost> = {
+    const postData: Omit<DatabasePost, 'id'> = {
       title: requestData.title.trim(),
       content_markdown: requestData.content.trim(),
       excerpt: requestData.excerpt.trim(),
@@ -251,7 +252,8 @@ Deno.serve(async (req: Request) => {
       category: postData.category_ids,
       tags: postData.tags,
       hasContent: !!postData.content_markdown,
-      hasExcerpt: !!postData.excerpt
+      hasExcerpt: !!postData.excerpt,
+      contentLength: postData.content_markdown.length
     });
 
     // Insert the blog post into Supabase
