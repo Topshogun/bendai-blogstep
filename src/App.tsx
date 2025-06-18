@@ -12,8 +12,10 @@ import FAQ from './components/sections/FAQ';
 import ModernCursor from './components/cursor/ModernCursor';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
-import BlogPage from './pages/BlogPage';
 import ServicesPage from './pages/ServicesPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
+import SubscribePage from './pages/SubscribePage';
 import { AdminRoutes } from './routes/adminRoutes';
 
 import './styles/cursor-effects.css';
@@ -39,8 +41,10 @@ function App() {
           } />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<ServicesPage />} />
-          <Route path="/blog/*" element={<BlogPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/subscribe" element={<SubscribePage />} />
           {AdminRoutes()}
         </Routes>
         <Footer />

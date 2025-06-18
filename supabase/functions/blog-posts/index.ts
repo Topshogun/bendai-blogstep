@@ -1,0 +1,254 @@
+/**
+ * Supabase Edge Function: blog-posts
+ * 
+ * API endpoint for receiving blog post data from n8n workflow
+ * 
+ * URL: https://your-project.supabase.co/functions/v1/blog-posts
+ * Method: POST
+ * 
+ * Expected payload:
+ * {
+ *   "title": "Blog Post Title",
+ *   "content": "Full blog post content in markdown or HTML",
+ *   "excerpt": "Brief description of the post",
+ *   "author": "Author Name",
+ *   "publishedDate": "2024-01-15T10:30:00Z",
+ *   "category": "AI Technology",
+ *   "tags": ["AI", "automation", "technology"],
+ *   "featuredImage": "https://example.com/image.jpg",
+ *   "slug": "blog-post-title"
+ * }
+ */
+
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+// CORS headers for cross-origin requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+};
+
+// Interface for incoming blog post data
+interface BlogPostData {
+  title: string;
+  content: string;
+  excerpt: string;
+  author?: string;
+  publishedDate?: string;
+  category?: string;
+  tags?: string[];
+  featuredImage?: string;
+  slug?: string;
+}
+
+// Validation function for blog post data
+function validateBlogPost(data: any): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!data.title || typeof data.title !== 'string' || data.title.trim().length === 0) {
+    errors.push('Title is required and must be a non-empty string');
+  }
+  
+  if (!data.content || typeof data.content !== 'string' || data.content.trim().length === 0) {
+    errors.push('Content is required and must be a non-empty string');
+  }
+  
+  if (!data.excerpt || typeof data.excerpt !== 'string' || data.excerpt.trim().length === 0) {
+    errors.push('Excerpt is required and must be a non-empty string');
+  }
+  
+  if (data.tags && !Array.isArray(data.tags)) {
+    errors.push('Tags must be an array');
+  }
+  
+  if (data.featuredImage && typeof data.featuredImage !== 'string') {
+    errors.push('Featured image must be a string URL');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+// Generate slug from title if not provided
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+Deno.serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
+  }
+
+  try {
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Method not allowed. Use POST.',
+          allowedMethods: ['POST']
+        }),
+        {
+          status: 405,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    // Parse request body
+    let requestData: BlogPostData;
+    try {
+      requestData = await req.json();
+    } catch (parseError) {
+      console.error('❌ JSON parsing error:', parseError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Invalid JSON in request body',
+          details: parseError.message
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    console.log('📝 Received blog post data:', {
+      title: requestData.title,
+      contentLength: requestData.content?.length || 0,
+      author: requestData.author,
+      category: requestData.category,
+      tags: requestData.tags
+    });
+
+    // Validate the incoming data
+    const validation = validateBlogPost(requestData);
+    if (!validation.isValid) {
+      console.error('❌ Validation failed:', validation.errors);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Validation failed',
+          details: validation.errors
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Prepare data for database insertion
+    const postData = {
+      title: requestData.title.trim(),
+      content_markdown: requestData.content.trim(),
+      excerpt: requestData.excerpt.trim(),
+      featured_image_url: requestData.featuredImage || 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&h=630',
+      category_ids: requestData.category || 'AI Technology',
+      tags: requestData.tags?.join(', ') || '',
+      slug: requestData.slug || generateSlug(requestData.title),
+      is_published: true,
+      published_at: requestData.publishedDate || new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    console.log('💾 Inserting post into database:', {
+      title: postData.title,
+      slug: postData.slug,
+      category: postData.category_ids
+    });
+
+    // Insert the blog post into Supabase
+    const { data: insertedPost, error: insertError } = await supabase
+      .from('Posts')
+      .insert(postData)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Database insertion error:', insertError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Failed to save blog post',
+          details: insertError.message
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    console.log('✅ Blog post saved successfully:', insertedPost.id);
+
+    // Return success response
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Blog post created successfully',
+        data: {
+          id: insertedPost.id,
+          title: insertedPost.title,
+          slug: insertedPost.slug,
+          publishedAt: insertedPost.published_at
+        }
+      }),
+      {
+        status: 201,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+  } catch (error) {
+    console.error('🚨 Unexpected error:', error);
+    
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Internal server error',
+        details: error.message
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
+});

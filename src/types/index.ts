@@ -7,20 +7,26 @@ export interface Service {
   features: string[];
 }
 
-export interface BlogPost {
-  id: string | number;
-  title: string;
-  excerpt: string;
-  image: string;
-  author: string;
-  date: string;
-  readTime: string;
-  category: string;
-  slug: string;
-}
-
 export interface ProcessStep {
   title: string;
   description: string;
   duration: string;
+}
+
+export interface SocialLink {
+  name: string;
+  Icon: LucideIcon;
+  href: string;
+}
+
+export interface StatItem {
+  label: string;
+  value: string;
+}
+
+export interface TeamMember {
+  name: string;
+  role: string;
+  image: string;
+  bio: string;
 }
