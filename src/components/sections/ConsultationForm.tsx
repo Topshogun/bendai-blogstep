@@ -77,8 +77,8 @@ const ConsultationForm = () => {
     }
   };
 
-  const handleReturnHome = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleReturnHome = () => {
+    console.log('Return Home button clicked'); // Debug log
     navigate('/');
   };
 
@@ -100,14 +100,14 @@ const ConsultationForm = () => {
               <p>Your consultation request has been submitted successfully. We'll contact you shortly.</p>
             </div>
             <div className="flex justify-center">
-              <Button
-                variant="primary"
+              <button
                 onClick={handleReturnHome}
-                className="group transform hover:scale-105 transition-all duration-300 inline-flex items-center relative z-10"
+                className="group transform hover:scale-105 transition-all duration-300 inline-flex items-center bg-white text-black px-8 py-4 font-semibold rounded-lg hover:bg-gray-200 active:bg-gray-300 cursor-pointer z-50 relative"
+                style={{ pointerEvents: 'auto' }}
               >
                 <Home className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 <span className="ml-2">Return Home</span>
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
