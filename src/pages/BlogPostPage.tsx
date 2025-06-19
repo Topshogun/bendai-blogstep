@@ -76,33 +76,6 @@ const BlogPostPage = () => {
     }
   };
 
-  // Function to remove duplicate title from content
-  const processContent = (content: string, title: string): string => {
-    if (!content || !title) return content;
-
-    const lines = content.split('\n');
-    if (lines.length === 0) return content;
-
-    const firstLine = lines[0].trim();
-    
-    // Check if the first line is a markdown heading that matches the title
-    const headingMatch = firstLine.match(/^#{1,6}\s+(.+)$/);
-    if (headingMatch) {
-      const headingText = headingMatch[1].trim();
-      // If the heading text matches the title (case-insensitive), remove it
-      if (headingText.toLowerCase() === title.toLowerCase()) {
-        // Remove the first line and any immediately following empty lines
-        let startIndex = 1;
-        while (startIndex < lines.length && lines[startIndex].trim() === '') {
-          startIndex++;
-        }
-        return lines.slice(startIndex).join('\n');
-      }
-    }
-
-    return content;
-  };
-
   if (isLoading) {
     return (
       <PageLayout
@@ -139,9 +112,6 @@ const BlogPostPage = () => {
       </PageLayout>
     );
   }
-
-  // Process the content to remove duplicate title
-  const processedContent = processContent(post.content, post.title);
 
   return (
     <PageLayout
@@ -236,7 +206,7 @@ const BlogPostPage = () => {
               ),
             }}
           >
-            {processedContent}
+            {post.content}
           </ReactMarkdown>
         </div>
 
