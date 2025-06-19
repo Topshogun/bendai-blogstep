@@ -6,7 +6,6 @@ import HeroSection from './components/Hero/HeroSection';
 import ProblemSolution from './components/sections/ProblemSolution';
 import Services from './components/sections/Services';
 import WhyChooseUs from './components/sections/WhyChooseUs';
-import CaseStudies from './components/sections/CaseStudies';
 import ConsultationForm from './components/sections/ConsultationForm';
 import FAQ from './components/sections/FAQ';
 import ModernCursor from './components/cursor/ModernCursor';
@@ -48,7 +47,6 @@ function App() {
               <ProblemSolution />
               <Services />
               <WhyChooseUs />
-              <CaseStudies />
               <ConsultationForm />
               <FAQ />
               <Footer />
