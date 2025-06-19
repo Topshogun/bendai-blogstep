@@ -51,8 +51,18 @@
   animation: menuFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* Smooth Scroll Behavior */
+/* Smooth Scroll Behavior - Remove auto scroll behavior */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Changed from smooth to auto to prevent unwanted scrolling */
   @apply scroll-pt-24; /* Offset for fixed header */
+}
+
+/* Override any scroll restoration behavior */
+* {
+  scroll-behavior: auto !important;
+}
+
+/* Ensure page starts at top */
+body {
+  scroll-behavior: auto;
 }

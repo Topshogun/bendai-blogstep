@@ -17,10 +17,23 @@ const BlogPostPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Scroll to top immediately when component mounts
+    window.scrollTo(0, 0);
+    
     if (slug) {
       fetchPost(slug);
     }
   }, [slug]);
+
+  // Additional scroll to top after post loads
+  useEffect(() => {
+    if (post && !isLoading) {
+      // Small delay to ensure DOM is fully rendered
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 100);
+    }
+  }, [post, isLoading]);
 
   const fetchPost = async (postSlug: string) => {
     try {

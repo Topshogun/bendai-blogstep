@@ -33,11 +33,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Component to handle scroll restoration
+const ScrollToTop = () => {
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  return null;
+};
+
 function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-black text-white cursor-none">
         <ModernCursor />
+        <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={
@@ -75,7 +84,6 @@ function App() {
           } />
           <Route path="/blog/:slug" element={
             <>
-              <FloatingNav />
               <BlogPostPage />
               <Footer />
             </>
