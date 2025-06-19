@@ -13,6 +13,7 @@ import ModernCursor from './components/cursor/ModernCursor';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import ServicesPage from './pages/ServicesPage';
+import BlogPage from './pages/BlogPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import SubscribePage from './pages/SubscribePage';
@@ -63,6 +64,13 @@ function App() {
             <>
               <FloatingNav />
               <ServicesPage />
+              <Footer />
+            </>
+          } />
+          <Route path="/blog" element={
+            <>
+              <FloatingNav />
+              <BlogPage />
               <Footer />
             </>
           } />
