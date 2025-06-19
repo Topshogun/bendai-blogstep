@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PageLayout from '../layouts/PageLayout';
 import BlogGrid from '../components/blog/BlogGrid';
-import FeaturedPost from '../components/blog/FeaturedPost';
+import FeaturedCarousel from '../components/blog/FeaturedCarousel';
 import CategoryFilter from '../components/blog/CategoryFilter';
-import { BLOG_POSTS, FEATURED_POST, BLOG_CATEGORIES } from '../constants/blog';
+import { BLOG_POSTS, BLOG_CATEGORIES } from '../constants/blog';
 import { supabase } from '../lib/supabase';
 
 interface DatabasePost {
@@ -56,8 +56,12 @@ const BlogPage = () => {
         readTime: `${Math.ceil(post.content_markdown.length / 1000)} min read`
       })) || [];
 
-      // Combine with static posts
-      setPosts([...transformedPosts, ...BLOG_POSTS]);
+      // Combine with static posts and sort by date
+      const allPosts = [...transformedPosts, ...BLOG_POSTS].sort((a, b) => 
+        new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
+      );
+      
+      setPosts(allPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -90,7 +94,7 @@ const BlogPage = () => {
       description="Latest insights and updates from the world of AI automation"
       currentPath="/blog"
     >
-      <FeaturedPost post={FEATURED_POST} />
+      <FeaturedCarousel posts={posts} />
       <CategoryFilter
         categories={BLOG_CATEGORIES}
         selectedCategory={selectedCategory}
