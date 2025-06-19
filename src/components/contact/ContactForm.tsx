@@ -35,7 +35,8 @@ const ContactForm = () => {
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full px-4 py-3 bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300"
+          placeholder="Enter your full name"
           required
         />
       </div>
@@ -50,7 +51,8 @@ const ContactForm = () => {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-4 py-3 bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300"
+          placeholder="Enter your email address"
           required
         />
       </div>
@@ -65,7 +67,8 @@ const ContactForm = () => {
           name="company"
           value={formData.company}
           onChange={handleChange}
-          className="w-full px-4 py-3 bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300"
+          placeholder="Enter your company name (optional)"
         />
       </div>
 
@@ -79,14 +82,15 @@ const ContactForm = () => {
           value={formData.message}
           onChange={handleChange}
           rows={6}
-          className="w-full px-4 py-3 bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300 resize-vertical"
+          placeholder="Tell us about your project and how we can help..."
           required
         />
       </div>
 
-      <Button variant="primary" className="w-full">
+      <Button variant="primary" className="w-full group">
         Send Message
-        <Send size={16} />
+        <Send size={16} className="group-hover:translate-x-1 transition-transform" />
       </Button>
     </form>
   );

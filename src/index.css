@@ -56,3 +56,74 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
+
+/* Enhanced Contact Form Styling */
+@layer components {
+  .contact-form-input {
+    @apply w-full px-4 py-3 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500;
+    @apply transition-all duration-300;
+    @apply shadow-sm;
+  }
+
+  .contact-form-input:hover {
+    @apply border-blue-300 shadow-md;
+  }
+
+  .contact-form-input:focus {
+    @apply shadow-lg shadow-blue-400/20;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .contact-form-label {
+    @apply block text-sm font-medium text-gray-300 mb-2;
+  }
+
+  /* Custom scrollbar for textarea */
+  .contact-form-input::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .contact-form-input::-webkit-scrollbar-track {
+    @apply bg-gray-700 rounded;
+  }
+
+  .contact-form-input::-webkit-scrollbar-thumb {
+    @apply bg-blue-400 rounded;
+  }
+
+  .contact-form-input::-webkit-scrollbar-thumb:hover {
+    @apply bg-blue-300;
+  }
+}
+
+/* Form validation states */
+.contact-form-input:invalid:not(:placeholder-shown) {
+  @apply border-red-400;
+}
+
+.contact-form-input:invalid:not(:placeholder-shown):focus {
+  @apply ring-red-400 border-red-500;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.contact-form-input:valid:not(:placeholder-shown) {
+  @apply border-green-400;
+}
+
+/* Enhanced button styling for contact form */
+.contact-form-button {
+  @apply w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg;
+  @apply transition-all duration-300 transform hover:scale-105;
+  @apply shadow-lg hover:shadow-xl;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900;
+}
+
+.contact-form-button:active {
+  @apply scale-95;
+}
+
+/* Loading state for form submission */
+.contact-form-button:disabled {
+  @apply opacity-50 cursor-not-allowed transform-none;
+}

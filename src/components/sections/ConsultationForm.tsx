@@ -118,7 +118,7 @@ const ConsultationForm = () => {
               value={formData.name}
               onChange={handleChange}
               placeholder="Your Name"
-              className="w-full px-6 py-4 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-6 py-4 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300"
               required
             />
             <input
@@ -127,7 +127,7 @@ const ConsultationForm = () => {
               value={formData.email}
               onChange={handleChange}
               placeholder="Your Email"
-              className="w-full px-6 py-4 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-6 py-4 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300"
               required
             />
             <input
@@ -136,21 +136,21 @@ const ConsultationForm = () => {
               value={formData.company}
               onChange={handleChange}
               placeholder="Company Name"
-              className="w-full px-6 py-4 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-6 py-4 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300"
             />
             <select
               name="service_area"
               value={formData.service_area}
               onChange={handleChange}
-              className="w-full px-6 py-4 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-300"
+              className="w-full px-6 py-4 bg-gray-800 border-2 border-blue-400 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300"
               required
             >
-              <option value="">Service Details - Select Your Area of Interest</option>
-              <option value="customer-support">AI Customer Support</option>
-              <option value="crm">CRM Integration</option>
-              <option value="website">Custom Website & AI Agents</option>
-              <option value="scheduling">Appointment Scheduling</option>
-              <option value="other">Other Services</option>
+              <option value="" className="text-gray-400">Service Details - Select Your Area of Interest</option>
+              <option value="customer-support" className="text-white">AI Customer Support</option>
+              <option value="crm" className="text-white">CRM Integration</option>
+              <option value="website" className="text-white">Custom Website & AI Agents</option>
+              <option value="scheduling" className="text-white">Appointment Scheduling</option>
+              <option value="other" className="text-white">Other Services</option>
             </select>
             <textarea
               name="message"
@@ -158,7 +158,7 @@ const ConsultationForm = () => {
               onChange={handleChange}
               placeholder="How can we help streamline your business operations?"
               rows={4}
-              className="w-full px-6 py-4 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-6 py-4 bg-gray-800 border-2 border-blue-400 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition-all duration-300 resize-vertical"
               required
             />
             
