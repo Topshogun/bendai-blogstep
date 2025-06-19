@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Clock, User, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { BlogPost } from '../../constants/blog';
 import Image from '../common/Image';
 import RevealOnScroll from '../ui/RevealOnScroll';
@@ -19,9 +20,11 @@ const FeaturedPost = ({ post }: FeaturedPostProps) => {
                 Featured Post
               </span>
               
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                {post.title}
-              </h2>
+              <Link to={`/blog/${post.slug}`}>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 hover:text-blue-400 transition-colors cursor-pointer">
+                  {post.title}
+                </h2>
+              </Link>
               
               <p className="text-xl text-gray-300 mb-6">
                 {post.excerpt}
@@ -50,20 +53,25 @@ const FeaturedPost = ({ post }: FeaturedPostProps) => {
                 ))}
               </div>
               
-              <button className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors group w-fit">
+              <Link 
+                to={`/blog/${post.slug}`}
+                className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors group w-fit cursor-pointer"
+              >
                 Read Full Article
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </button>
+              </Link>
             </div>
             
             <div className="order-1 lg:order-2">
-              <div className="aspect-video rounded-xl overflow-hidden">
-                <Image
-                  src={post.featuredImage}
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <Link to={`/blog/${post.slug}`} className="block">
+                <div className="aspect-video rounded-xl overflow-hidden">
+                  <Image
+                    src={post.featuredImage}
+                    alt={post.title}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              </Link>
             </div>
           </div>
         </div>

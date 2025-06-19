@@ -14,6 +14,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import ServicesPage from './pages/ServicesPage';
 import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import SubscribePage from './pages/SubscribePage';
@@ -71,6 +72,13 @@ function App() {
             <>
               <FloatingNav />
               <BlogPage />
+              <Footer />
+            </>
+          } />
+          <Route path="/blog/:slug" element={
+            <>
+              <FloatingNav />
+              <BlogPostPage />
               <Footer />
             </>
           } />
